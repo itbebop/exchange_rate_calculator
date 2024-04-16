@@ -18,6 +18,7 @@ class ExchangeViewModel with ChangeNotifier {
     final data = await _exchangeRepositoryImpl.getRate(baseCode, relativeCode);
     _isLoading = false;
     print('야 우냐? $data');
+
     notifyListeners();
   }
 }
