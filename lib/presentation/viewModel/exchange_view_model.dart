@@ -6,25 +6,24 @@ class ExchangeViewModel with ChangeNotifier {
   // 뷰모델이 레포지토리에서 데이터를 가져오기 때문에 거른다음에 뷰에 던짐.
   // 생성을 해줘야 한다.
   final ExchangeRepositoryImpl _exchangeRepositoryImpl;
-  ExchangeViewModel({required ExchangeRepositoryImpl exchangeRepositoryImpl})
-      : _exchangeRepositoryImpl = exchangeRepositoryImpl;
+  ExchangeViewModel({required ExchangeRepositoryImpl exchangeRepositoryImpl}) : _exchangeRepositoryImpl = exchangeRepositoryImpl;
 
   bool _isLoading = false;
+  List<String> keys = [];
 
   void onSearch(String baseCode, String relativeCode) async {
     _isLoading = true;
     notifyListeners();
 
     final data = await _exchangeRepositoryImpl.getRate(baseCode, relativeCode);
+    final keys = await _exchangeRepositoryImpl.getKey(baseCode);
     _isLoading = false;
-    print('야 우냐? $data');
+    print('야 우냐? $keys');
 
     notifyListeners();
   }
 }
 
 void main() {
-  ExchangeViewModel(
-          exchangeRepositoryImpl: ExchangeRepositoryImpl(ExchangeRateDataApi()))
-      .onSearch('USD', 'KRW');
+  ExchangeViewModel(exchangeRepositoryImpl: ExchangeRepositoryImpl(ExchangeRateDataApi())).onSearch('USD', 'KRW');
 }
