@@ -32,9 +32,7 @@ class ExchangeRateDto {
     timeNextUpdateUnix = json['time_next_update_unix'];
     timeNextUpdateUtc = json['time_next_update_utc'];
     baseCode = json['base_code'];
-    conversionRates = json['conversion_rates'] != null
-        ? conversionRates.fromJson(json['conversion_rates'])
-        : null;
+    conversionRates = json['conversion_rates'] != null ? conversionRates.fromJson(json['conversion_rates']) : null;
   }
   String? result;
   String? documentation;
@@ -44,7 +42,7 @@ class ExchangeRateDto {
   num? timeNextUpdateUnix;
   String? timeNextUpdateUtc;
   String? baseCode;
-  dynamic? conversionRates;
+  dynamic conversionRates;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

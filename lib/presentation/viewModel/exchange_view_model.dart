@@ -6,21 +6,22 @@ class ExchangeViewModel with ChangeNotifier {
   // 뷰모델이 레포지토리에서 데이터를 가져오기 때문에 거른다음에 뷰에 던짐.
   // 생성을 해줘야 한다.
   final ExchangeRepositoryImpl _exchangeRepositoryImpl;
-  ExchangeViewModel({required ExchangeRepositoryImpl exchangeRepositoryImpl})
-      : _exchangeRepositoryImpl = exchangeRepositoryImpl;
+  ExchangeViewModel({required ExchangeRepositoryImpl exchangeRepositoryImpl}) : _exchangeRepositoryImpl = exchangeRepositoryImpl;
 
   bool _isLoading = false;
   List<String> keys = [];
-  String baseCode = 'USD';
-  String relativeCode = 'KRW';
+  String baseCode = '';
+  String relativeCode = '';
   num? rate = 0.0;
-  num? baseNum;
-  num? relativeNum;
+  double? baseNum;
+  double? relativeNum;
 
   void onFetch() async {
+    baseCode = 'USD';
+    relativeCode = 'KRW';
     rate = await _exchangeRepositoryImpl.getRate(baseCode, relativeCode);
     keys = await _exchangeRepositoryImpl.getKey(baseCode);
-    print('야 또우냐 $keys');
+    notifyListeners();
   }
 
   void changeRelativeCode(String newRelativeCode) async {
@@ -35,13 +36,13 @@ class ExchangeViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void changeRelativeNum(num newRelativeNum) async {
+  void changeRelativeNum(double newRelativeNum) async {
     relativeNum = newRelativeNum;
     baseNum = (relativeNum! * rate!).toDouble();
     notifyListeners();
   }
 
-  void changeBaseNum(num newBaseNum) async {
+  void changeBaseNum(double newBaseNum) async {
     baseNum = newBaseNum;
     relativeNum = (baseNum! * rate!).toDouble();
     notifyListeners();
@@ -58,10 +59,4 @@ class ExchangeViewModel with ChangeNotifier {
 
     notifyListeners();
   }
-}
-
-void main() {
-  ExchangeViewModel(
-          exchangeRepositoryImpl: ExchangeRepositoryImpl(ExchangeRateDataApi()))
-      .onFetch();
 }

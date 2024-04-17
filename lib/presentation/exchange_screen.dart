@@ -1,7 +1,16 @@
+import 'package:date_format/date_format.dart';
 import 'package:exchange_rate_calculator/presentation/viewModel/exchange_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:timer_builder/timer_builder.dart';
+
+final List<String> _themeMode = <String>[
+  'system',
+  'dark',
+  'light',
+];
+String selectedTheme = 'system';
 
 class ExchangeScreen extends StatefulWidget {
   const ExchangeScreen({super.key});
@@ -23,79 +32,109 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ExchangeViewModel>();
-    print(viewModel.keys);
-    print('안나오냐? ${viewModel.baseCode}');
-    final _baseTextEditingController =
-        TextEditingController(text: viewModel.baseNum.toString());
 
-    final _relativeTextEditingController =
-        TextEditingController(text: viewModel.relativeNum.toString());
+    final baseTextEditingController = TextEditingController();
+    final relativeTextEditingController = TextEditingController();
     return Scaffold(
+        backgroundColor: const Color(0xffbecf2f9),
         appBar: AppBar(
-          title: const Text('환율 계산'),
+          title: Center(
+              child: Column(
+            children: [
+              const Text(
+                'Currency Converter',
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w400),
+              ),
+              TimerBuilder.periodic(const Duration(seconds: 1), builder: (context) {
+                return Text(
+                  formatDate(DateTime.now(), [hh, ':', nn, ':', ss, ' ', am]),
+                  style: const TextStyle(fontSize: 20),
+                );
+              })
+            ],
+          )),
+          backgroundColor: const Color(0xffbecf2f9),
         ),
         body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Text('1 ${viewModel.baseCode} ='),
-              Text('${viewModel.rate} ${viewModel.relativeCode}'),
-              Text(DateTime.now().toString()),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.white,
+            ),
+            margin: const EdgeInsets.all(50),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.3,
+              child: Column(
                 children: [
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    child: TextFormField(
-                      controller: _baseTextEditingController,
-                      // inputFormatters: <TextInputFormatter>[
-                      //   FilteringTextInputFormatter.digitsOnly
-                      // ],
-                      onChanged: (value) =>
-                          viewModel.changeBaseNum(double.parse(value)),
-                      // controller: _baseTextEditingController,
-                    ),
+                    height: MediaQuery.of(context).size.height * 0.05,
                   ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    child: DropdownButton(
-                        value: viewModel.baseCode,
-                        items: viewModel.keys
-                            .map((e) =>
-                                DropdownMenuItem(value: e, child: Text(e)))
-                            .toList(),
-                        onChanged: ((value) {
-                          viewModel.changeBaseCode(value!);
-                        })),
-                  )
+                  Text(
+                    '1 ${viewModel.baseCode} = ${viewModel.rate} ${viewModel.relativeCode}',
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.4,
+                        child: TextFormField(
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          controller: baseTextEditingController,
+                          inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp("(\\d+[,.]?[\\d]*)"))], //dot + number
+                          onChanged: (value) {
+                            relativeTextEditingController.value = relativeTextEditingController.value
+                                .copyWith(text: (double.parse(value.isNotEmpty ? value : '0') * (viewModel.rate ?? 0)).toString(), selection: const TextSelection.collapsed(offset: 5));
+                          },
+                          // controller: _baseTextEditingController,
+                        ),
+                      ),
+                      SizedBox(
+                        child: DropdownButton(
+                          menuMaxHeight: 500,
+                          //itemHeight: null,
+                          value: viewModel.baseCode,
+                          items: viewModel.keys.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                          onChanged: (value) {
+                            viewModel.changeBaseCode(value!);
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.4,
+                        child: TextFormField(
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          controller: relativeTextEditingController,
+                          inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp("(\\d+[,.]?[\\d]*)"))],
+                          onChanged: (value) {
+                            baseTextEditingController.value = baseTextEditingController.value
+                                .copyWith(text: (double.parse(value.isNotEmpty ? value : '0') / (viewModel.rate ?? 0)).toString(), selection: const TextSelection.collapsed(offset: 5));
+                          },
+                          // controller: _relativeTextEditingController,
+                        ),
+                      ),
+                      SizedBox(
+                        child: DropdownButton(
+                            menuMaxHeight: 300,
+                            value: viewModel.relativeCode,
+                            items: viewModel.keys.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                            onChanged: ((value) {
+                              viewModel.changeRelativeCode(value!);
+                            })),
+                      ),
+                    ],
+                  ),
                 ],
               ),
-              Row(
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    child: TextFormField(
-                      controller: _relativeTextEditingController,
-                      onChanged: (value) =>
-                          viewModel.changeRelativeNum(double.parse(value)),
-                      // controller: _relativeTextEditingController,
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    child: DropdownButton(
-                        value: viewModel.relativeCode,
-                        items: viewModel.keys
-                            .map((e) =>
-                                DropdownMenuItem(value: e, child: Text(e)))
-                            .toList(),
-                        onChanged: ((value) {
-                          viewModel.changeRelativeCode(value!);
-                        })),
-                  )
-                ],
-              )
-            ],
+            ),
           ),
         ));
   }
