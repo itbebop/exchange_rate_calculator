@@ -1,5 +1,6 @@
 import 'package:exchange_rate_calculator/presentation/viewModel/exchange_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class ExchangeScreen extends StatefulWidget {
@@ -10,9 +11,6 @@ class ExchangeScreen extends StatefulWidget {
 }
 
 class _ExchangeScreenState extends State<ExchangeScreen> {
-  final _baseTextEditingController = TextEditingController();
-  final _relativeTextEditingController = TextEditingController();
-
   @override
   void initState() {
     Future.microtask(() {
@@ -26,6 +24,12 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   Widget build(BuildContext context) {
     final viewModel = context.watch<ExchangeViewModel>();
     print(viewModel.keys);
+    print('안나오냐? ${viewModel.baseCode}');
+    final _baseTextEditingController =
+        TextEditingController(text: viewModel.baseNum.toString());
+
+    final _relativeTextEditingController =
+        TextEditingController(text: viewModel.relativeNum.toString());
     return Scaffold(
         appBar: AppBar(
           title: const Text('환율 계산'),
@@ -37,22 +41,31 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
               Text('${viewModel.rate} ${viewModel.relativeCode}'),
               Text(DateTime.now().toString()),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.4,
-                    height: MediaQuery.of(context).size.width * 0.2,
                     child: TextFormField(
                       controller: _baseTextEditingController,
+                      // inputFormatters: <TextInputFormatter>[
+                      //   FilteringTextInputFormatter.digitsOnly
+                      // ],
+                      onChanged: (value) =>
+                          viewModel.changeBaseNum(double.parse(value)),
+                      // controller: _baseTextEditingController,
                     ),
                   ),
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    height: MediaQuery.of(context).size.width * 0.2,
+                    width: MediaQuery.of(context).size.width * 0.4,
                     child: DropdownButton(
-                        value: '',
-                        items: viewModel.keys.map((e) => DropdownMenuItem(child: Text(e))).toList(),
+                        value: viewModel.baseCode,
+                        items: viewModel.keys
+                            .map((e) =>
+                                DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
                         onChanged: ((value) {
-                          setState(() {});
+                          viewModel.changeBaseCode(value!);
                         })),
                   )
                 ],
@@ -61,11 +74,25 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                 children: [
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.4,
-                    height: MediaQuery.of(context).size.width * 0.2,
                     child: TextFormField(
                       controller: _relativeTextEditingController,
+                      onChanged: (value) =>
+                          viewModel.changeRelativeNum(double.parse(value)),
+                      // controller: _relativeTextEditingController,
                     ),
                   ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    child: DropdownButton(
+                        value: viewModel.relativeCode,
+                        items: viewModel.keys
+                            .map((e) =>
+                                DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: ((value) {
+                          viewModel.changeRelativeCode(value!);
+                        })),
+                  )
                 ],
               )
             ],
