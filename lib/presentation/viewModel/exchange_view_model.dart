@@ -10,20 +10,29 @@ class ExchangeViewModel with ChangeNotifier {
 
   bool _isLoading = false;
   List<String> keys = [];
+  String baseCode = 'USD';
+  String relativeCode = 'KRW';
+  num? rate = 0.0;
+
+  void onFetch() async {
+    rate = await _exchangeRepositoryImpl.getRate(baseCode, relativeCode);
+    keys = await _exchangeRepositoryImpl.getKey(baseCode);
+    print('야 또우냐 $keys');
+  }
 
   void onSearch(String baseCode, String relativeCode) async {
     _isLoading = true;
     notifyListeners();
 
-    final data = await _exchangeRepositoryImpl.getRate(baseCode, relativeCode);
-    final keys = await _exchangeRepositoryImpl.getKey(baseCode);
+    rate = await _exchangeRepositoryImpl.getRate(baseCode, relativeCode);
+    keys = await _exchangeRepositoryImpl.getKey(baseCode);
     _isLoading = false;
-    print('야 우냐? $keys');
+    //print('야 우냐? $keys');
 
     notifyListeners();
   }
 }
 
 void main() {
-  ExchangeViewModel(exchangeRepositoryImpl: ExchangeRepositoryImpl(ExchangeRateDataApi())).onSearch('USD', 'KRW');
+  ExchangeViewModel(exchangeRepositoryImpl: ExchangeRepositoryImpl(ExchangeRateDataApi())).onFetch();
 }

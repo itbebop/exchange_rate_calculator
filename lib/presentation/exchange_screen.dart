@@ -14,8 +14,18 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   final _relativeTextEditingController = TextEditingController();
 
   @override
+  void initState() {
+    Future.microtask(() {
+      final viewModel = context.read<ExchangeViewModel>();
+      viewModel.onFetch();
+    });
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ExchangeViewModel>();
+    print(viewModel.keys);
     return Scaffold(
         appBar: AppBar(
           title: const Text('환율 계산'),
@@ -23,25 +33,38 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              const Text(''),
-              const Text(''),
-              const Text('시간'),
+              Text('1 ${viewModel.baseCode} ='),
+              Text('${viewModel.rate} ${viewModel.relativeCode}'),
+              Text(DateTime.now().toString()),
               Row(
                 children: [
-                  TextFormField(
-                    controller: _baseTextEditingController,
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    height: MediaQuery.of(context).size.width * 0.2,
+                    child: TextFormField(
+                      controller: _baseTextEditingController,
+                    ),
                   ),
-                  DropdownButton(
-                      items: viewModel.keys.map((e) => DropdownMenuItem(child: Text(e))).toList(),
-                      onChanged: ((value) {
-                        print(value);
-                      }))
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    height: MediaQuery.of(context).size.width * 0.2,
+                    child: DropdownButton(
+                        value: '',
+                        items: viewModel.keys.map((e) => DropdownMenuItem(child: Text(e))).toList(),
+                        onChanged: ((value) {
+                          setState(() {});
+                        })),
+                  )
                 ],
               ),
               Row(
                 children: [
-                  TextFormField(
-                    controller: _relativeTextEditingController,
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    height: MediaQuery.of(context).size.width * 0.2,
+                    child: TextFormField(
+                      controller: _relativeTextEditingController,
+                    ),
                   ),
                 ],
               )
